@@ -1,11 +1,70 @@
 
-# ECP5 Virtual JTAG
+# Lattice ECP5 User JTAG
 
-Resources:
+Most FPGAs have a mechanism to bridge the standard JTAG IO pins of the FPGA into the user domain:
 
-* [FPGA Libraries Reference Guide](http://www.latticesemi.com/-/media/LatticeSemi/Documents/UserManuals/EI/FPGA_Libraries_Reference_Guide_39.ashx?document_id=52070)
+* Intel has Virtual JTAG, probably the most advanced system with almost an unlimited number of user JTAG slave blocks.
+* Xilinx has the BSCAN class of cell primitives. For example, Xilinx 7 has the BSCANE2 cell, which there can be a maximum of 4, each for a different USER JTAG instruction.
+* Lattice has the JTAGx primitive.
 
-    Simply mentions the existence of the `JTAGG` cell on page 425, but cautions that "Most users would typically not use this component directly."
+The JTAGx primitives are listed in the Lattice [FPGA Libraries Reference Guide](http://www.latticesemi.com/view_document?document_id=52656).  
+There are currently 6 different versions: 
+
+* JTAGA: LatticSC/M architecture
+* JTAGB: LatticECP/ECP and LatticeXP architecture
+* JTAGC: LatticeECP2/M architecture
+* JTAGD: LatticeECP2/M architecture
+* JTAGE: LatticeECP3 and LatticeXP2 architectures
+* JTAGF: MachXO2, MachX03D, MachX03L, and Platform Manager 2 architectures
+* JTAGG: LatticeECP5 architecture
+
+Except for JTAGA, the pins of these primitives are mostly the same. 
+
+The primitive manual describes the functionality of these cells pretty well, except for ECP5, which says:
+
+> The JTAGG element is used to provide access to internal JTAG signals from
+> within the FPGA fabric. This element is used for some cores, such as Reveal
+> Logic Analyzer, and other purposes. Most users would typically not use this
+> component directly. 
+
+However, since the pinout of JTAGG is identical to the one of earlier primitives, you can simply use those descriptions
+and it works just fine.
+
+Note that using the JTAGG primitive will probably result in the inability to use Lattice REveal Logic Analyzer, but
+that's OK if you're using the Yosys/NextPnR-based open source tool flow.
+
+I googled a bit around for projects that use the JTAGG primitive. You can check those out below in the resources section.
+
+Fundamentally, the cell is pretty simple.
+
+It supports 2 8-bit JTAG instructions: ER1 (0x32) and ER2 (0x38).
+
+The user defined core logic can attach whichever scan logic it wants to these 2 instructions.
+
+The JTAGG primitive has the following IO pins:
+
+* JTCK: output. Connected to the the external TCK and TDI pins.
+* JSHIFT: output. High when the FPGA TAP is in Shift-DR state. 
+* JUPDATE: output. High when the FPGA TAP is in Update-DR state.
+* JRSTN: output. Low when the TAP is in Test-Logic-Reset state.
+* JCE1: output. High when the ER1 instruction is selected and the TAP is in Capture-DR or Shift-DR state.
+* JCE2: output. High when the ER2 instruction is selected and the TAP is in Capture-DR or Shift-DR state.
+* JRT1: output. High when the ER1 instruction is selected and the TAP is in Run-Test/Idle state.
+* JRT2: output. High when the ER2 instruction is selected and the TAP is in Run-Test/Idle state.
+* JTDO1: input. Connected to TDO when ER1 instruction is selected.
+* JTDO2: input. Connected to TDO when ER2 instruction is selected.
+
+The pins above are sufficient to add shift data in and out of the TAP when ER1 or ER2 instructions are selected.
+
+## Examples
+
+In the [`./spinal](./spinal) directory, you can find a SpinalHDL example that uses the JTAGG primitive. In typical
+SpinalHDL fashion, there are lot of abstraction layers that make thing sometimes hard to follow, but it also allows
+easily porting over an example from one FPGA family to another. 
+
+## Resources:
+
+* [FPGA Libraries Reference Guide](http://www.latticesemi.com/view_document?document_id=52656)
 
 * [Hackaday Superconference 2019 Badge](https://github.com/Spritetm/hadbadge2019_fpgasoc/) uses the JTAGG cell.
 
@@ -22,8 +81,7 @@ Resources:
     
     This design seems to intercept all JTAG traffic on TDI, and display it in hex on an OLED. 
     
-    It doesn't use `jce1`, `jce2`, `jupdate` etc.
-
+    It doesn't use JCE1, JCE2, JUPDATE etc.
 
 * MaSoCist project uses [JTAGG](https://github.com/hackfin/MaSoCist/commit/bada5fc5f78a87e48e8325db545c71a50052d785) to control something.
 
@@ -31,4 +89,3 @@ Resources:
 
     There's even [some documentation](https://github.com/SpinalHDL/SpinalHDL/blob/dev/lib/src/main/scala/spinal/lib/blackbox/lattice/ecp5/debug.scala).
 
-    Example of how to use it as part of a [JtagTapFactory](https://github.com/SpinalHDL/SpinalHDL/blob/dev/lib/src/main/scala/spinal/lib/com/jtag/JtagTapFactory.scala).
