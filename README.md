@@ -10,8 +10,8 @@ Most FPGAs have a mechanism to bridge the standard JTAG IO pins of the FPGA into
 The JTAGx primitives are listed in the Lattice [FPGA Libraries Reference Guide](http://www.latticesemi.com/view_document?document_id=52656).  
 There are currently 6 different versions: 
 
-* JTAGA: LatticSC/M architecture
-* JTAGB: LatticECP/ECP and LatticeXP architecture
+* JTAGA: LatticeSC/M architecture
+* JTAGB: LatticeECP/ECP and LatticeXP architecture
 * JTAGC: LatticeECP2/M architecture
 * JTAGD: LatticeECP2/M architecture
 * JTAGE: LatticeECP3 and LatticeXP2 architectures
@@ -35,7 +35,7 @@ that's OK if you're using the Yosys/NextPnR-based open source tool flow.
 
 I googled a bit around for projects that use the JTAGG primitive. You can check those out below in the resources section.
 
-Fundamentally, the cell is pretty simple.
+Fundamentally, the cell is pretty simple:
 
 It supports 2 8-bit JTAG instructions: ER1 (0x32) and ER2 (0x38).
 
@@ -56,11 +56,13 @@ The JTAGG primitive has the following IO pins:
 
 The pins above are sufficient to add shift data in and out of the TAP when ER1 or ER2 instructions are selected.
 
-## Examples
+## SpinalHDL Example
 
 In the [`./spinal](./spinal) directory, you can find a SpinalHDL example that uses the JTAGG primitive. In typical
 SpinalHDL fashion, there are lot of abstraction layers that make thing sometimes hard to follow, but it also allows
 easily porting over an example from one FPGA family to another. 
+
+The code requires SpinalHDL version 1.4.2 (as I write this, this is the latest release.)
 
 ## Resources:
 
