@@ -84,7 +84,7 @@ user selectable data registers.
 
 As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
 
-```
+```scala
   def idcode(value: Bits)(instructionId: Int)
   def read[T <: Data](data: T, light : Boolean)(instructionId: Int)
   def write[T <: Data](data: T, cleanUpdate: Boolean = true, readable: Boolean = true)(instructionId: Int)
@@ -94,6 +94,10 @@ As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
 * `idcode` is use to set the IDCODE of your device. When using it on an ECP5, this will error out because
   that's obviously not allows. (Again: only user chains ER1 and ER2 are supported.)
 * `flowFragmentPush` allows for pushing data to a target clock domain, without back-pressure.
+
+    According to the interface, it accepts a generic data fragment, but right now, it errors out with
+    anything other than 1 bit data. And that 1 bit data is mapped a 'valid'...
+
 * `read` has the following extra parameters: 
     * `light`: 
         * `false`: `data` is double-buffered: it's copied into a shadow register during the Capture-DR 
@@ -113,4 +117,43 @@ As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
     If `readable` is set to `false`, `cleanUpdate` can't be true, because `cleanUpdate` uses a register
     that's created by `readable.
 
+There is currently no expand the API in a way that works for different `JtagTap` classes: that's because the
+generc JtagTap and the ECP5 specific JtagTap are implemented different, with their own `read`, `write` etc
+methods, and thus also with any other new method that you might want to add.
+
+## Under the Hood of the ECP5 JtagTap
+
+Both the generic and ECP5 TAP use a `JtagTapInstructionCtrl` bundle as the main data and control signals
+to determine when to shift, update etc.
+
+The definition is as follows:
+
+```scala
+case class JtagTapInstructionCtrl() extends Bundle with IMasterSlave {
+  val tdi = Bool()
+  val enable = Bool()
+  val capture = Bool()
+  val shift = Bool()
+  val update = Bool()
+  val reset = Bool()
+  val tdo = Bool()
+```
+
+In the case of ECP5 the state signals are derived from a combination of the JTAGG outputs. (In the generic case,
+it's pretty much a direct connection to the one-hot states of the canonical TAP FSM.)
+
+The ECP5 JtagTap itself is straightforward, with each API call implemented with `Area` objects like
+`JtagTapInstructionWrite`, `JtagTapInstructionRead`, etc. These API implementation are *also*
+straightforward. 
+
+However, inside these API implementations, there's always a `JtaggShifter` object. It's just a shift
+register that takes a `JtagTapInstructionCtrl` interface parameter, but 
+[implementation](https://github.com/SpinalHDL/SpinalHDL/blob/1d55a06c19219c47feffd377aa3c71a2ab5e333b/lib/src/main/scala/spinal/lib/com/jtag/lattice/ecp5/JtagTapCommands.scala#L25) 
+is very convoluted.
+
+Everything seems to be centered around the fact that "...ECP5 JTAGG has a buffer already implemented 
+at the TDI signal...". I suspect that this has consequences wrt data coming 1 clock cycle later
+than expect or something of that sort.
+
+To be investigated...
 
