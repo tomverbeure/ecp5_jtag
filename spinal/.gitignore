@@ -4,6 +4,7 @@
 *.bin
 *.yaml
 .*.swp
+.idea/
 
 # sbt specific
 .cache/

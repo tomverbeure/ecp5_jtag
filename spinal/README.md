@@ -1,0 +1,116 @@
+
+# JTAG and SpinalHDL
+
+## User Visible JTAG Aspects
+
+The key think that you need is a JTAG test access port (TAP). This TAP is what will
+be used to attach features: read registers, write registers etc.
+
+A SpinalHDL TAP does not have to be a 'real' JTAG TAP as narrowly defined by the spec.
+It's a block that has some higher level traits against which you design your JTAG related
+features.
+
+In SpinalHDL, `JtagTapFactory` currently creates 2 kinds of JtagTaps: one generic `JtagTap` one,
+which implements the standard TAP FSM and everything that surrounds is, and one specific
+for ECP5, JtagTap_Lattice_ECP5, that instantiates a JTAGG library primitive.
+
+Both `JtagTap` and `JtagTap_Lattice_ECP5` inherit traits from `JtagTapFunctions`, which
+defines the "API" that will be used by the user who uses `JtagTapFactory` to implement
+JTAG functions. Currently, this API consists of:
+
+```scala
+trait JtagTapFunctions {
+  //Instruction wrappers
+  def idcode(value: Bits)(instructionId: Int)
+  def read[T <: Data](data: T, light : Boolean)(instructionId: Int)
+  def write[T <: Data](data: T, cleanUpdate: Boolean = true, readable: Boolean = true)(instructionId: Int)
+  def flowFragmentPush[T <: Data](sink : Flow[Fragment[Bits]], sinkClockDomain : ClockDomain)(instructionId: Int)
+//  def hasUpdate(now : Bool)(instructionId : Int): Unit
+}
+```
+
+So now, let's go line by line through the code that's used to attach JTAG functionality to
+an ECP5 FPGA.
+
+```scala
+    val jtagg = new JTAGG(JtaggGeneric().copy())
+```
+
+This instantiates a `JTAGG` cell in the design. The `JtaggGeneric` is a tiny wrapper around a
+SpinalHdl `Generic()` that's used by a `BlackBox()`. By default, the `JtaggGeneric()` enables
+both the `ER1` and the `ER2` port.
+
+```scala
+    val debugtap = ClockDomain(
+            jtagg.io.JTCK, 
+            jtagg.io.JRSTN, 
+            config = ClockDomainConfig(resetKind = ASYNC, resetActiveLevel = LOW))(
+        ...
+```
+We create a clock domain that uses `JTCK` and `JRSTN` as clock and reset. According to the ECP5
+manual, the `JTCK` and `JRSTN` outputs are connected straight to their respective JTAG pins on
+the FPGA package.
+
+```scala
+        ...
+        new Area{
+            val tap = JtagTapFactory(jtagg, 8)
+        ...
+```
+We now create the TAP. `JtagTapFactory` has (currently) 2 overloaded `apply` functions. One expects
+a `Jtag` IO bundle which contains all the regular JTAG IO signals) as first argument, the other 
+expects an object of the `JTAGG` class. `JtagTapFactory` will then create a generic `JtagTap` or a
+`JtagTap_Lattice_ECP5` object.
+
+```scala
+        ...
+            val readArea  = tap.read(B(0xAE, 8 bits))(0x38)
+            val writeArea = tap.write(io.led0, cleanUpdate=true)(0x32)
+        })
+```
+
+The 2 lines above create a read JTAG data register, and a write JTAG data register. 
+
+In the code above, the read register is an 8-bit wide that always returns a fixed value of 0xAE, 
+but the first argument of `read` is a templated argument, so you could give it pretty much anything.
+The read register is selected by a JTAG IR value of 0x38.
+
+The write register is only 1 bits long and connected straight to LED0. It's selected with an IR value of
+0x32.
+
+In the case of ECP5, only IR values of 0x32 and 0x38 are allowed: if you specificy a different value, 
+SpinalHDL will complain. This is because the JTAGG primitive only supports ER1 (0x32) and ER2 (0x38) as
+user selectable data registers.
+
+As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
+
+```
+  def idcode(value: Bits)(instructionId: Int)
+  def read[T <: Data](data: T, light : Boolean)(instructionId: Int)
+  def write[T <: Data](data: T, cleanUpdate: Boolean = true, readable: Boolean = true)(instructionId: Int)
+  def flowFragmentPush[T <: Data](sink : Flow[Fragment[Bits]], sinkClockDomain : ClockDomain)(instructionId: Int)
+```
+
+* `idcode` is use to set the IDCODE of your device. When using it on an ECP5, this will error out because
+  that's obviously not allows. (Again: only user chains ER1 and ER2 are supported.)
+* `flowFragmentPush` allows for pushing data to a target clock domain, without back-pressure.
+* `read` has the following extra parameters: 
+    * `light`: 
+        * `false`: `data` is double-buffered: it's copied into a shadow register during the Capture-DR 
+           phase, after which the contents of this shadow register are shifted out.
+        * `true`: `data` is shifted out directly. If `data` changes during a shift, different fields 
+           of `data` might become inconsistent.
+* `write`
+    * `readable`:
+        * `true`: during Capture-DR, the current value of `data` is copied and shifted out, while the
+          new value is being shifted in.
+    * `cleanUpdate`: 
+        * `false`: `data` is assigned directly to the shift register. During the shift operation, the value
+          of `data` will change each clock cycle.
+        * `true`: during Update-DR phase, the shift register is copied into a shadow register. `data` is
+          the output of this shadow register.
+
+    If `readable` is set to `false`, `cleanUpdate` can't be true, because `cleanUpdate` uses a register
+    that's created by `readable.
+
+
