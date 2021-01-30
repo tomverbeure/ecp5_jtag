@@ -16,6 +16,18 @@ class Ecp5JtagDemo(isSim: Boolean) extends Component
         val osc_clk_in      = in(Bool)
 
         val led0            = out(Bool)
+
+        val jtck            = out(Bool)
+        val jrstn           = out(Bool)
+        val jtdi            = out(Bool)
+        val jshift          = out(Bool)
+        val jupdate         = out(Bool)
+        val jce1            = out(Bool)
+        val jce2            = out(Bool)
+        val jrti1           = out(Bool)
+        val jrti2           = out(Bool)
+        val jtdo1           = out(Bool)
+        val jtdo2           = out(Bool)
     }
 
     noIoPrefix()
@@ -24,6 +36,18 @@ class Ecp5JtagDemo(isSim: Boolean) extends Component
     // JTAGG is the black box that will be instantiated in the Verilog.
     // JtaggGeneric are the generic parameters of the black box.
     val jtagg = new JTAGG(JtaggGeneric().copy())
+
+    io.jtck       := jtagg.io.JTCK
+    io.jrstn      := jtagg.io.JRSTN
+    io.jtdi       := jtagg.io.JTDI
+    io.jshift     := jtagg.io.JSHIFT
+    io.jupdate    := jtagg.io.JUPDATE
+    io.jce1       := jtagg.io.JCE1
+    io.jce2       := jtagg.io.JCE2
+    io.jrti1      := jtagg.io.JRTI1
+    io.jrti2      := jtagg.io.JRTI2
+    io.jtdo1      := jtagg.io.JTDO1
+    io.jtdo2      := jtagg.io.JTDO2
 
     val debugtap = ClockDomain(
             jtagg.io.JTCK, 
