@@ -2,6 +2,7 @@ TARGET=ecp5_jtag
 TOP=Ecp5JtagDemo
 
 OBJS+=../spinal/$(TOP).v 
+#OBJS+=../verilog/$(TOP).v 
 
 #TRELLIS=/usr/local/share/trellis
 TRELLIS=/opt/prjtrellis/share/trellis
@@ -16,6 +17,9 @@ $(TARGET)_out.config: $(TARGET).json $(TARGET).lpf
 
 $(TARGET).bit: $(TARGET)_out.config
 	ecppack $< $@
+
+prog:
+	ecpdap prog --freq 5000 $(TARGET).bit
 
 clean:
 	rm -f *.svf *.bit *.config *.ys *.json
