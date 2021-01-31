@@ -43,8 +43,8 @@ The user defined core logic can attach whichever scan logic it wants to these 2 
 
 The JTAGG primitive has the following IO pins:
 
-* JTCK: output. Connected to the the external TCK pin.
-* JTDI: output. Connected to the the external TDI pin.
+* JTCK: output. Connected to the external TCK pin.
+* JTDI: output. Connected to **a registered version of the external TDI pin**.
 * JSHIFT: output. High when the FPGA TAP is in Shift-DR state. 
 * JUPDATE: output. High when the FPGA TAP is in Update-DR state.
 * JRSTN: output. Low when the TAP is in Test-Logic-Reset state.
