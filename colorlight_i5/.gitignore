@@ -1,3 +1,5 @@
 *.bit
 *.json
 *.config
+*.log
+.*.sw*
