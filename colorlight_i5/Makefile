@@ -1,8 +1,8 @@
 TARGET=ecp5_jtag
 TOP=Ecp5JtagDemo
 
-OBJS+=../spinal/$(TOP).v 
-#OBJS+=../verilog/$(TOP).v 
+#OBJS+=../spinal/$(TOP).v 
+OBJS+=../verilog/$(TOP).v 
 
 #TRELLIS=/usr/local/share/trellis
 TRELLIS=/opt/prjtrellis/share/trellis
@@ -13,7 +13,7 @@ $(TARGET).json: $(OBJS)
 	yosys -p "synth_ecp5 -json $@" $(OBJS)
 
 $(TARGET)_out.config: $(TARGET).json $(TARGET).lpf
-	nextpnr-ecp5 --25k --package CABGA381 --speed 6 --json $< --textcfg $@ --lpf $(TARGET).lpf --freq 25 -l next.log
+	nextpnr-ecp5 --25k --pre-pack constraints.py --package CABGA381 --speed 6 --json $< --textcfg $@ --lpf $(TARGET).lpf --freq 25 -l next.log
 
 $(TARGET).bit: $(TARGET)_out.config
 	ecppack $< $@

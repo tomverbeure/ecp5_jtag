@@ -37,15 +37,15 @@ class Ecp5JtagDemo(isSim: Boolean) extends Component
     // JtaggGeneric are the generic parameters of the black box.
     val jtagg = new JTAGG(JtaggGeneric().copy())
 
-    io.jtck       := (if (true) jtagg.io.JTCK    else False)
-    io.jrstn      := (if (true) jtagg.io.JRSTN   else False)
-    io.jtdi       := (if (true) jtagg.io.JTDI    else False)
-    io.jshift     := (if (true) jtagg.io.JSHIFT  else False)
+    io.jtck       := (if (false) jtagg.io.JTCK    else False)
+    io.jrstn      := (if (false) jtagg.io.JRSTN   else False)
+    io.jtdi       := (if (false) jtagg.io.JTDI    else False)
+    io.jshift     := (if (false) jtagg.io.JSHIFT  else False)
     io.jupdate    := (if (false) jtagg.io.JUPDATE else False)
-    io.jce1       := (if (true) jtagg.io.JCE1    else False)
-    io.jce2       := (if (true) jtagg.io.JCE2    else False)
-    io.jrti1      := (if (true) jtagg.io.JRTI1   else False)
-    io.jrti2      := (if (true) jtagg.io.JRTI2   else False)
+    io.jce1       := (if (false) jtagg.io.JCE1    else False)
+    io.jce2       := (if (false) jtagg.io.JCE2    else False)
+    io.jrti1      := (if (false) jtagg.io.JRTI1   else False)
+    io.jrti2      := (if (false) jtagg.io.JRTI2   else False)
     io.jtdo1      := (if (false) jtagg.io.JTDO1   else False)
     io.jtdo2      := (if (false) jtagg.io.JTDO2   else False)
 
@@ -61,8 +61,6 @@ class Ecp5JtagDemo(isSim: Boolean) extends Component
             // is created. 
             val tap = JtagTapFactory(jtagg, 8)
 
-            // JTAGG only supports 2 instructions: 0x32 and 0x38
-            val readArea  = tap.read(B(0xAE, 8 bits))(0x38)
             val writeArea = tap.write(io.led0, cleanUpdate=true)(0x32)
         })
 
