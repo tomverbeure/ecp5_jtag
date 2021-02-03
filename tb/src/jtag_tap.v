@@ -2,7 +2,6 @@
 
 module jtag_tap(
         input  wire tck, tms, tdi,
-        output wire tdo,
     
         output wire test_logic_reset,
         output wire run_test_idle,
@@ -51,7 +50,7 @@ module jtag_tap(
             fsm_exit1_ir:           nxt_jtag_state = tms ? fsm_update_ir        : fsm_pause_ir;
             fsm_pause_ir:           nxt_jtag_state = tms ? fsm_exit2_ir         : fsm_pause_ir;
             fsm_exit2_ir:           nxt_jtag_state = tms ? fsm_update_ir        : fsm_shift_ir;
-            fsm_update_ir:          nxt_jtag_state = tms ? fsm_select_ir_scan   : fsm_run_test_idle;
+            fsm_update_ir:          nxt_jtag_state = tms ? fsm_select_dr_scan   : fsm_run_test_idle;
         endcase
     end
 
@@ -85,13 +84,13 @@ module jtag_tap(
         cur_jtag_state   <= nxt_jtag_state;
     end
 
-    assign test_logic_reset = cur_jtag_state[fsm_test_logic_reset];
-    assign run_test_idle    = cur_jtag_state[fsm_run_test_idle];
-    assign capture_dr       = cur_jtag_state[fsm_capture_dr];
-    assign shift_dr         = cur_jtag_state[fsm_shift_dr];
-    assign update_dr        = cur_jtag_state[fsm_update_dr];
-    assign capture_ir       = cur_jtag_state[fsm_capture_ir];
-    assign shift_ir         = cur_jtag_state[fsm_shift_ir];
-    assign update_ir        = cur_jtag_state[fsm_update_ir];
+    assign test_logic_reset = cur_jtag_state == fsm_test_logic_reset;
+    assign run_test_idle    = cur_jtag_state == fsm_run_test_idle;
+    assign capture_dr       = cur_jtag_state == fsm_capture_dr;
+    assign shift_dr         = cur_jtag_state == fsm_shift_dr;
+    assign update_dr        = cur_jtag_state == fsm_update_dr;
+    assign capture_ir       = cur_jtag_state == fsm_capture_ir;
+    assign shift_ir         = cur_jtag_state == fsm_shift_ir;
+    assign update_ir        = cur_jtag_state == fsm_update_ir;
 
 endmodule

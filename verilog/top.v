@@ -101,6 +101,6 @@ module Ecp5JtagDemo(
         end
     end
 
-    assign led0 = dr_shift;
+    assign led0 = dr_shadow;
 
 endmodule

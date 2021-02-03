@@ -1,0 +1,85 @@
+[*]
+[*] GTKWave Analyzer v3.3.90 (w)1999-2018 BSI
+[*] Wed Feb  3 05:52:19 2021
+[*]
+[dumpfile] "/home/tom/projects/ecp5_jtag/tb/waves.vcd"
+[dumpfile_mtime] "Wed Feb  3 05:50:55 2021"
+[dumpfile_size] 6061
+[savefile] "/home/tom/projects/ecp5_jtag/tb/waves.gtkw"
+[timestart] 345
+[size] 1919 1022
+[pos] -1 -1
+*-8.000000 1050 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[treeopen] tb.u_dut.
+[treeopen] tb.u_dut.u_jtagg.
+[sst_width] 327
+[signals_width] 388
+[sst_expanded] 1
+[sst_vpaned_height] 300
+@28
+tb.tck
+tb.tms
+tb.tdi
+tb.tdo
+@200
+-
+@820
+tb.u_dut.u_jtagg.u_jtag_tap.cur_jtag_state_text[159:0]
+@200
+-
+@28
+tb.u_dut.u_jtagg.u_jtag_tap.test_logic_reset
+tb.u_dut.u_jtagg.u_jtag_tap.run_test_idle
+@200
+-
+@28
+tb.u_dut.u_jtagg.u_jtag_tap.capture_ir
+tb.u_dut.u_jtagg.u_jtag_tap.shift_ir
+tb.u_dut.u_jtagg.u_jtag_tap.update_ir
+@200
+-
+@28
+tb.u_dut.u_jtagg.u_jtag_tap.capture_dr
+tb.u_dut.u_jtagg.u_jtag_tap.shift_dr
+tb.u_dut.u_jtagg.u_jtag_tap.update_dr
+@200
+-
+@c00022
+tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+@28
+(0)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(1)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(2)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(3)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(4)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(5)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(6)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+(7)tb.u_dut.u_jtagg.ir_shift_reg[7:0]
+@1401200
+-group_end
+@22
+tb.u_dut.u_jtagg.ir_shadow_reg[7:0]
+@200
+-
+@28
+tb.u_dut.u_jtagg.JRSTN
+tb.u_dut.u_jtagg.JTCK
+tb.u_dut.u_jtagg.JTDI
+tb.u_dut.u_jtagg.JCE1
+tb.u_dut.u_jtagg.JCE2
+tb.u_dut.u_jtagg.JRTI1
+tb.u_dut.u_jtagg.JRTI2
+tb.u_dut.u_jtagg.JSHIFT
+tb.u_dut.u_jtagg.JTDO1
+tb.u_dut.u_jtagg.JTDO2
+tb.u_dut.u_jtagg.JUPDATE
+@200
+-
+@28
+tb.u_dut.jshift_dly
+tb.u_dut.dr_shift
+tb.u_dut.dr_shadow
+tb.led0
+[pattern_trace] 1
+[pattern_trace] 0

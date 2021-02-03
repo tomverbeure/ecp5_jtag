@@ -28,7 +28,6 @@ module JTAGG(
         .tck(TCK), 
         .tms(TMS), 
         .tdi(TDI), 
-        .tdo(TDO),
         .test_logic_reset(test_logic_reset),
         .run_test_idle(run_test_idle),
         .capture_ir(capture_ir),
@@ -41,25 +40,36 @@ module JTAGG(
 
     reg [7:0] ir_shift_reg, ir_shadow_reg;
 
-    always @(posedge TCK) begin
-        JTDI    <= TDI;
-
-        if (capture_ir) begin
-            ir_shift_reg    <= ir_shadow_reg;
+    always @(posedge TCK or posedge test_logic_reset) begin
+        if (test_logic_reset) begin
+            ir_shift_reg    <= 8'h00;
+            ir_shadow_reg   <= 8'h00;
         end
-
-        if (shift_ir) begin
-            ir_shift_reg    <= { TDI, ir_shift_reg[7:1] };
-        end
-
-        if (update_ir) begin
-            ir_shadow_reg   <= ir_shift_reg;
+        else begin
+            if (capture_ir) begin
+                ir_shift_reg    <= ir_shadow_reg;
+            end
+    
+            if (shift_ir) begin
+                ir_shift_reg    <= { TDI, ir_shift_reg[7:1] };
+            end
+    
+            if (update_ir) begin
+                ir_shadow_reg   <= ir_shift_reg;
+            end
         end
     end
 
+    always @(posedge TCK) begin
+        JTDI    <= TDI;
+    end
+
     reg tdo_reg;
+    reg drive_tdo;
 
     always @(negedge TCK) begin
+        drive_tdo   <= shift_ir || shift_dr;
+
         if (shift_ir) begin
             tdo_reg     <= ir_shadow_reg[0];
         end
@@ -73,7 +83,7 @@ module JTAGG(
         JRSTN   <= !test_logic_reset;
     end
 
-    assign TDO  = (shift_ir || shift_dr) ? tdo_reg : 1'bz;
+    assign TDO  = drive_tdo ? tdo_reg : 1'bz;
 
     assign JTCK     = TCK;
     assign JSHIFT   = shift_dr  && (ir_shadow_reg == 8'h32 || ir_shadow_reg == 8'h38);
