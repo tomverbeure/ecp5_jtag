@@ -13,8 +13,6 @@ class Ecp5JtagDemo(isSim: Boolean) extends Component
 {
     val io = new Bundle {
 
-        val osc_clk_in      = in(Bool)
-
         val led0            = out(Bool)
 
         val jtck            = out(Bool)

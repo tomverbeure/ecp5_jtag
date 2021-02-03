@@ -157,3 +157,16 @@ than expect or something of that sort.
 
 To be investigated...
 
+Here's now I currently understand `JtagTapInstructionFlowFragmentPush`: it doesn't contain a shift register inside 
+JtagTap, but each bit that gets scanned in, is converted into a single bit fragment with a .last attribute that 
+gets asserted at the end of Shift-DR. This single bit fragment gets immediately synchronized to the destination clock 
+domain. It is up to the destination to convert this fragment stream into a parallel message, and to use the .last 
+attribute as final update.
+
+`StreamFragmentBitsDispatcherElement` is an example of that.
+
+This will only work if the destination clock is at least 2x faster than the JTAG clock, which will usually be the case.
+If you want to use JtagTapInstructionFlowFragmentPush with a slower destination clock domain, then you'd have to improve 
+the code so that you put a shift register in the JTAG clock domain, and only transfer a fragment to the other side whenever 
+that shift register is full.
+
