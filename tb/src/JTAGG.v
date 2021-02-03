@@ -1,6 +1,6 @@
 `default_nettype none
 
-module JTAGG(
+module JTAGG (
         input  wire TCK, 
         input  wire TMS,
         input  wire TDI,
@@ -18,6 +18,9 @@ module JTAGG(
         input  wire JTDO1, 
         input  wire JTDO2
     );
+
+    parameter ER1 = "ENABLED";
+    parameter ER2 = "ENABLED";
 
     wire test_logic_reset;
     wire run_test_idle;

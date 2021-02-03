@@ -2,6 +2,7 @@
 // Component : Ecp5JtagDemo
 // Git hash  : 63cc835033fa0b89da24229c8c076bad8166e3d3
 
+`define DIAMOND
 
 `define JtagTapState_binary_sequential_type [2:0]
 `define JtagTapState_binary_sequential_Reset 3'b000
@@ -12,8 +13,15 @@
 
 
 module Ecp5JtagDemo (
-  input               osc_clk_in,
   output              led0,
+
+`ifdef DIAMOND
+		input wire		tck,
+		input wire 		tms,
+		input wire		tdi,
+		output wire 	tdo,
+`endif
+
   output              jtck,
   output              jrstn,
   output              jtdi,
@@ -59,6 +67,12 @@ module Ecp5JtagDemo (
     .ER1("ENABLED"),
     .ER2("ENABLED") 
   ) jtagg_1 (
+`ifdef DIAMOND
+    .TCK(tck),
+    .TMS(tms),
+    .TDI(tdi),
+    .TDO(tdo),
+`endif
     .JSHIFT     (jtagg_1_JSHIFT    ), //o
     .JUPDATE    (jtagg_1_JUPDATE   ), //o
     .JRSTN      (jtagg_1_JRSTN     ), //o
