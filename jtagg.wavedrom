@@ -1,0 +1,23 @@
+{signal: [
+  [ 'JTAG',
+   {name: 'TCK',   wave: 'p........'},
+   {name: 'TMS',   wave: '=========', phase:5},
+   {name: 'TDI',   wave: 'xxx333xxx', phase:0.5, data:[ "0", "1","2","3","4","5","6","7"]},
+   {name: 'TDO',   wave: 'xxxxx444xxx', phase:0.5, data:[ "0", "1","2","3","4","5","6","7"]},
+  ],
+  {},
+  [ 'FSM',
+   {name: 'State',   wave: 'xx55..55xx', data:[ "Capture-DR", "Shift-DR", "Exit 1-DR", "Update-DR" ]},
+   {name: 'IR[7:0]', wave: 'x.....'}
+  ],
+  {},
+  [ 'JTAGG IO',
+    {name: 'JTCK',   wave: 'p........', },
+    {name: 'JTDI',   wave: 'xxx333xxx',  phase:7, data:[ "0", "1","2","3","4","5","6","7"]},
+    {name: 'JSHIFT', wave: 'x', data:[ "0", "1","2","3","4","5","6","7"]},
+
+  ]
+  ],
+ edge:['a~b'],
+  config: {skin: 'narrow', hscale: 5}
+}
