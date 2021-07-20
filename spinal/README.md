@@ -15,14 +15,15 @@ In SpinalHDL,
 currently creates 2 kinds of JtagTaps: one generic 
 [`JtagTap`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTap.scala#L73), 
 which implements the standard 
-TAP FSM and everything that surrounds is, and one specific for ECP5, 
+TAP FSM and everything that surrounds it, and one specific for ECP5, 
 [`JtagTap_Lattice_ECP5`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/lattice/ecp5/JtagTap.scala#L72), 
-that instantiates a JTAGG library primitive. (The class is `...latice.ecp5.JtagTap` but it gets renamed to 
-`JtagTap_Lattice_ECP5` in `JtagFactory`).
+that instantiates a JTAGG library primitive. (The actual class name is `...latice.ecp5.JtagTap` but it gets 
+[renamed to `JtagTap_Lattice_ECP5`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTapFactory.scala#L7)
+ in `JtagFactory`).
 
 Both `JtagTap` and `JtagTap_Lattice_ECP5` inherit traits from 
 [`JtagTapFunctions`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/Traits.scala#L10), 
-which defines the "API" that will be used by the user who uses `JtagTapFactory` to implement
+which defines the API that will be used by those who use `JtagTapFactory` to implement
 JTAG functions. Currently, this API consists of:
 
 ```scala
@@ -43,7 +44,7 @@ that's used to attach JTAG functionality to an ECP5 FPGA.
     val jtagg = new JTAGG(JtaggGeneric().copy())
 ```
 
-This instantiates a `JTAGG` cell in the design. The 
+This instantiates a `JTAGG` cell in the design. 
 [`JtaggGeneric`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/blackbox/lattice/ecp5/debug.scala#L42a) 
 is a tiny wrapper around a SpinalHdl `Generic()` that's used by a `BlackBox()`. By default, the `JtaggGeneric()` enables
 both the `ER1` and the `ER2` port.
@@ -79,9 +80,9 @@ expects an object of the `JTAGG` class. `JtagTapFactory` will then create a gene
 
 The 2 lines above create a read JTAG data register, and a write JTAG data register. 
 
-In the code above, the read register is an 8-bit wide that always returns a fixed value of 0xAE, 
-but the first argument of `read` is a templated argument, so you could give it pretty much anything.
-The read register is selected by a JTAG IR value of 0x38.
+In the code above, the read register is an 8-bit wide read-only register that always returns a 
+fixed value of 0xAE, but the first argument of `read` is a templated argument, so you could give it 
+pretty much anything.  The read register is selected by a JTAG IR value of 0x38.
 
 The write register is only 1 bits long and connected straight to LED0. It's selected with an IR value of
 0x32.
@@ -99,8 +100,8 @@ As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
   def flowFragmentPush[T <: Data](sink : Flow[Fragment[Bits]], sinkClockDomain : ClockDomain)(instructionId: Int)
 ```
 
-* `idcode` is use to set the IDCODE of your device. When using it on an ECP5, this will error out because
-  that's obviously not allowed. (Again: only user chains ER1 and ER2 are supported.)
+* `idcode` is used to set the IDCODE of your device. When using it on an ECP5, this will error out because
+  that's not allowed: only user chains ER1 and ER2 are supported.
 * `flowFragmentPush` allows for pushing data to a target clock domain, without back-pressure.
 
     According to the interface, it accepts a generic data fragment, but right now, it errors out with
@@ -108,7 +109,7 @@ As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
 
 * `read` has the following extra parameters: 
     * `light`: 
-        * `false`: `data` is double-buffered: it's copied into a shadow register during the Capture-DR 
+        * `false`: `data` is double-buffered. It's copied into a shadow register during the Capture-DR 
            phase, after which the contents of this shadow register are shifted out.
         * `true`: `data` is shifted out directly. If `data` changes during a shift, different fields 
            of `data` might become inconsistent.
@@ -125,13 +126,13 @@ As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
     If `readable` is set to `false`, `cleanUpdate` can't be true, because `cleanUpdate` uses a register
     that's created by `readable.
 
-There is currently no expand the API in a way that works for different `JtagTap` classes: that's because the
-generc JtagTap and the ECP5 specific JtagTap are implemented different, with their own `read`, `write` etc
-methods, and thus also with any other new method that you might want to add.
+There is currently no way to expand the API in a way that works for different `JtagTap` classes. That's because the
+generic JtagTap and the ECP5 JtagTap are defined with a Trait, not with a Class. Their implementation is differently, 
+with their own `read`, `write` etc methods, and thus also with any other new method that you might want to add.
 
 ## Under the Hood of the ECP5 JtagTap
 
-Both the generic and ECP5 TAP use a 
+Both the generic TAP and the ECP5 TAP use a 
 [`JtagTapInstructionCtrl`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTapInstructions.scala#L11)
 bundle as the main data and control signals to determine when to shift, update etc.
 
@@ -148,8 +149,15 @@ case class JtagTapInstructionCtrl() extends Bundle with IMasterSlave {
   val tdo = Bool()
 ```
 
-In the case of ECP5 the state signals are derived from a combination of the JTAGG outputs. (In the generic case,
-it's pretty much a direct connection to the one-hot states of the canonical TAP FSM.)
+In the generic case, it's pretty much a [direct connection](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTap.scala#L101-L109)
+to the one-hot states of the canonical TAP FSM.
+In the case of ECP5, the state signals are 
+[derived from a combination of the JTAGG outputs](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/lattice/ecp5/JtagTap.scala#L112-L129). 
+For ECP5, there is lib.com.jtag.lattice.ecp5.JtagTap.scala` which does this mapping, but for Xilinx,
+there is not, and the mapping is done in 
+[`JtagTapInstructionCtrl.fromXilinxBscane2`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTapInstructions.scala#L25-L34)
+instead. It'd be cleaner for there to be a consistent way to do the mapping between the custom JTAG TAP
+and `JtagTapInstructionCtrl`.
 
 The ECP5 JtagTap itself is straightforward, with each API call implemented with `Area` objects like
 `JtagTapInstructionWrite`, `JtagTapInstructionRead`, etc. The API call implementations are *also*

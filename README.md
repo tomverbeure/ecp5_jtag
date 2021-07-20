@@ -1,7 +1,7 @@
 
 # Lattice ECP5 User JTAG
 
-Most FPGAs have a mechanism to bridge the standard JTAG IO pins of the FPGA into the user domain:
+Most FPGAs have a mechanism to bridge the standard JTAG IO pins of the FPGA into the core logic domain:
 
 * Intel has Virtual JTAG, probably the most advanced system with almost an unlimited number of user JTAG slave blocks.
 * Xilinx has the BSCAN class of cell primitives. For example, Xilinx 7 has the BSCANE2 cell, which there can be a maximum of 4, each for a different USER JTAG instruction.
@@ -30,15 +30,12 @@ The primitive manual describes the functionality of these cells pretty well, exc
 However, since the pinout of JTAGG is identical to the one of earlier primitives, you can simply use those descriptions
 and it works just fine.
 
-Note that using the JTAGG primitive will probably result in the inability to use Lattice REveal Logic Analyzer, but
+Note that using the JTAGG primitive will probably result in the inability to use Lattice Reveal Logic Analyzer, but
 that's OK if you're using the Yosys/NextPnR-based open source tool flow.
 
 I googled a bit around for projects that use the JTAGG primitive. You can check those out below in the resources section.
 
-Fundamentally, the cell is pretty simple:
-
-It supports 2 8-bit JTAG instructions: ER1 (0x32) and ER2 (0x38).
-
+Fundamentally, the cell is pretty simple: it supports 2 8-bit JTAG instructions: ER1 (0x32) and ER2 (0x38), and that's it.
 The user defined core logic can attach whichever scan logic it wants to these 2 instructions.
 
 The JTAGG primitive has the following IO pins:
@@ -55,15 +52,17 @@ The JTAGG primitive has the following IO pins:
 * JTDO1: input. Connected to TDO when ER1 instruction is selected.
 * JTDO2: input. Connected to TDO when ER2 instruction is selected.
 
-The pins above are sufficient to add shift data in and out of the TAP when ER1 or ER2 instructions are selected.
+The pins above are sufficient to shift data in and out of the TAP when ER1 or ER2 instructions are selected.
 
 ## SpinalHDL Example
 
 In the [`./spinal](./spinal) directory, you can find a SpinalHDL example that uses the JTAGG primitive. In typical
 SpinalHDL fashion, there are lot of abstraction layers that make thing sometimes hard to follow, but it also allows
-easily porting over an example from one FPGA family to another. 
+easily porting over an example from one FPGA family to another. I've documentated the SpinalHDL specific
+bits in [here](spinal/README.md).
 
-The code requires SpinalHDL version 1.4.2 (as I write this, this is the latest release.)
+The code requires SpinalHDL version 1.4.2 (as I write this, this is the latest release.) In earlier SpinalHDL
+versions, the JTAG infrastructure was quite a bit different.
 
 ## Resources:
 
@@ -87,8 +86,4 @@ The code requires SpinalHDL version 1.4.2 (as I write this, this is the latest r
     It doesn't use JCE1, JCE2, JUPDATE etc.
 
 * MaSoCist project uses [JTAGG](https://github.com/hackfin/MaSoCist/commit/bada5fc5f78a87e48e8325db545c71a50052d785) to control something.
-
-* SpinalHDL has a [JtaggGeneric](https://javadoc.io/static/com.github.spinalhdl/spinalhdl-lib_2.11/1.4.0/index.html#spinal.lib.blackbox.lattice.ecp5.JtaggGeneric) block
-
-    There's even [some documentation](https://github.com/SpinalHDL/SpinalHDL/blob/dev/lib/src/main/scala/spinal/lib/blackbox/lattice/ecp5/debug.scala).
 
