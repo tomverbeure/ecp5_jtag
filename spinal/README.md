@@ -10,12 +10,19 @@ A SpinalHDL TAP does not have to be a 'real' JTAG TAP as narrowly defined by the
 It's a block that has some higher level traits against which you design your JTAG related
 features.
 
-In SpinalHDL, `JtagTapFactory` currently creates 2 kinds of JtagTaps: one generic `JtagTap` one,
-which implements the standard TAP FSM and everything that surrounds is, and one specific
-for ECP5, JtagTap_Lattice_ECP5, that instantiates a JTAGG library primitive.
+In SpinalHDL, 
+[`JtagTapFactory`](https://github.com/SpinalHDL/SpinalHDL/blob/dev/lib/src/main/scala/spinal/lib/com/jtag/JtagTapFactory.scala) 
+currently creates 2 kinds of JtagTaps: one generic 
+[`JtagTap`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTap.scala#L73), 
+which implements the standard 
+TAP FSM and everything that surrounds is, and one specific for ECP5, 
+[`JtagTap_Lattice_ECP5`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/lattice/ecp5/JtagTap.scala#L72), 
+that instantiates a JTAGG library primitive. (The class is `...latice.ecp5.JtagTap` but it gets renamed to 
+`JtagTap_Lattice_ECP5` in `JtagFactory`).
 
-Both `JtagTap` and `JtagTap_Lattice_ECP5` inherit traits from `JtagTapFunctions`, which
-defines the "API" that will be used by the user who uses `JtagTapFactory` to implement
+Both `JtagTap` and `JtagTap_Lattice_ECP5` inherit traits from 
+[`JtagTapFunctions`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/Traits.scala#L10), 
+which defines the "API" that will be used by the user who uses `JtagTapFactory` to implement
 JTAG functions. Currently, this API consists of:
 
 ```scala
@@ -29,15 +36,16 @@ trait JtagTapFunctions {
 }
 ```
 
-So now, let's go line by line through the code that's used to attach JTAG functionality to
-an ECP5 FPGA.
+So now, let's go line by line through [my minimal demo code](https://github.com/tomverbeure/ecp5_jtag/blob/8f4f706573d68d6526e698ae2ff5b46488516183/spinal/src/main/scala/ecp5_jtag/Ecp5JtagDemo.scala#L36-L67)
+that's used to attach JTAG functionality to an ECP5 FPGA.
 
 ```scala
     val jtagg = new JTAGG(JtaggGeneric().copy())
 ```
 
-This instantiates a `JTAGG` cell in the design. The `JtaggGeneric` is a tiny wrapper around a
-SpinalHdl `Generic()` that's used by a `BlackBox()`. By default, the `JtaggGeneric()` enables
+This instantiates a `JTAGG` cell in the design. The 
+[`JtaggGeneric`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/blackbox/lattice/ecp5/debug.scala#L42a) 
+is a tiny wrapper around a SpinalHdl `Generic()` that's used by a `BlackBox()`. By default, the `JtaggGeneric()` enables
 both the `ER1` and the `ER2` port.
 
 ```scala
@@ -78,7 +86,7 @@ The read register is selected by a JTAG IR value of 0x38.
 The write register is only 1 bits long and connected straight to LED0. It's selected with an IR value of
 0x32.
 
-In the case of ECP5, only IR values of 0x32 and 0x38 are allowed: if you specificy a different value, 
+In the case of ECP5, only IR values of 0x32 and 0x38 are allowed: if you specify a different value, 
 SpinalHDL will complain. This is because the JTAGG primitive only supports ER1 (0x32) and ER2 (0x38) as
 user selectable data registers.
 
@@ -92,7 +100,7 @@ As seen earlier, a SpinalHDL JtagTap has currently 4 API calls:
 ```
 
 * `idcode` is use to set the IDCODE of your device. When using it on an ECP5, this will error out because
-  that's obviously not allows. (Again: only user chains ER1 and ER2 are supported.)
+  that's obviously not allowed. (Again: only user chains ER1 and ER2 are supported.)
 * `flowFragmentPush` allows for pushing data to a target clock domain, without back-pressure.
 
     According to the interface, it accepts a generic data fragment, but right now, it errors out with
@@ -123,8 +131,9 @@ methods, and thus also with any other new method that you might want to add.
 
 ## Under the Hood of the ECP5 JtagTap
 
-Both the generic and ECP5 TAP use a `JtagTapInstructionCtrl` bundle as the main data and control signals
-to determine when to shift, update etc.
+Both the generic and ECP5 TAP use a 
+[`JtagTapInstructionCtrl`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTapInstructions.scala#L11)
+bundle as the main data and control signals to determine when to shift, update etc.
 
 The definition is as follows:
 
@@ -143,10 +152,10 @@ In the case of ECP5 the state signals are derived from a combination of the JTAG
 it's pretty much a direct connection to the one-hot states of the canonical TAP FSM.)
 
 The ECP5 JtagTap itself is straightforward, with each API call implemented with `Area` objects like
-`JtagTapInstructionWrite`, `JtagTapInstructionRead`, etc. These API implementation are *also*
+`JtagTapInstructionWrite`, `JtagTapInstructionRead`, etc. The API call implementations are *also*
 straightforward. 
 
-However, inside these API implementations, there's always a `JtaggShifter` object. It's just a shift
+However, inside these API call implementation, there's always a `JtaggShifter` object. It's just a shift
 register that takes a `JtagTapInstructionCtrl` interface parameter, but 
 [implementation](https://github.com/SpinalHDL/SpinalHDL/blob/1d55a06c19219c47feffd377aa3c71a2ab5e333b/lib/src/main/scala/spinal/lib/com/jtag/lattice/ecp5/JtagTapCommands.scala#L25) 
 is very convoluted.
@@ -157,11 +166,12 @@ than expect or something of that sort.
 
 To be investigated...
 
-Here's now I currently understand `JtagTapInstructionFlowFragmentPush`: it doesn't contain a shift register inside 
-JtagTap, but each bit that gets scanned in, is converted into a single bit fragment with a .last attribute that 
-gets asserted at the end of Shift-DR. This single bit fragment gets immediately synchronized to the destination clock 
-domain. It is up to the destination to convert this fragment stream into a parallel message, and to use the .last 
-attribute as final update.
+Here's now I currently understand 
+[`JtagTapInstructionFlowFragmentPush`](https://github.com/SpinalHDL/SpinalHDL/blob/faa1281d49c59991c1dcf00486ade28b703dc5c8/lib/src/main/scala/spinal/lib/com/jtag/JtagTapInstructions.scala#L123): 
+it doesn't contain a shift register inside JtagTap, but each bit that gets scanned in, is converted into a single 
+bit fragment with a .last attribute that gets asserted at the end of Shift-DR. This single bit fragment gets 
+immediately synchronized to the destination clock domain. It is up to the destination to convert this fragment 
+stream into a parallel message, and to use the .last attribute as final update.
 
 `StreamFragmentBitsDispatcherElement` is an example of that.
 

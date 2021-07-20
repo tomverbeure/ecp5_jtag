@@ -35,6 +35,7 @@ class Ecp5JtagDemo(isSim: Boolean) extends Component
     // JtaggGeneric are the generic parameters of the black box.
     val jtagg = new JTAGG(JtaggGeneric().copy())
 
+    // Bring out the JTAGG signals to the FPGA pins to connect it to a logic analyzer.
     io.jtck       := (if (true) jtagg.io.JTCK    else False)
     io.jrstn      := (if (true) jtagg.io.JRSTN   else False)
     io.jtdi       := (if (true) jtagg.io.JTDI    else False)
