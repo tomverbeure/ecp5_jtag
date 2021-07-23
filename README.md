@@ -41,7 +41,7 @@ The user defined core logic can attach whichever scan logic it wants to these 2 
 The JTAGG primitive has the following IO pins:
 
 * JTCK: output. Connected to the external TCK pin.
-* JTDI: output. Connected to **a registered version of the external TDI pin**.
+* JTDI: output. Connected to **a registered version of the external TDI pin** (registered to JTCK posedge).
 * JSHIFT: output. High when the FPGA TAP is in Shift-DR state. 
 * JUPDATE: output. High when the FPGA TAP is in Update-DR state.
 * JRSTN: output. Low when the TAP is in Test-Logic-Reset state.
@@ -49,8 +49,8 @@ The JTAGG primitive has the following IO pins:
 * JCE2: output. High when the ER2 instruction is selected and the TAP is in Capture-DR or Shift-DR state.
 * JRT1: output. High when the ER1 instruction is selected and the TAP is in Run-Test/Idle state.
 * JRT2: output. High when the ER2 instruction is selected and the TAP is in Run-Test/Idle state.
-* JTDO1: input. Connected to TDO when ER1 instruction is selected.
-* JTDO2: input. Connected to TDO when ER2 instruction is selected.
+* JTDO1: input. Connected to TDO when ER1 instruction is selected, **through a register clocked on JTCK negedge**.
+* JTDO2: input. Connected to TDO when ER2 instruction is selected, **through a register clocked on JTCK negedge**.
 
 The pins above are sufficient to shift data in and out of the TAP when ER1 or ER2 instructions are selected.
 
